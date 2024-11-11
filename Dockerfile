@@ -12,6 +12,8 @@ RUN adduser --disabled-password --gecos '' zebraslive && \
     apt update -y && add-apt-repository -y ppa:git-core/ppa && apt update -y && apt install -y aria2 git git-lfs unzip ffmpeg
 
 USER zebraslive
+RUN git clone https://github.com/aigc-apps/CogVideoX-Fun
+COPY CogVideoX-Fun /content
 
 RUN pip install -q torch==2.4.0+cu121 torchvision==0.19.0+cu121 torchaudio==2.4.0+cu121 torchtext==0.18.0 torchdata==0.8.0 --extra-index-url https://download.pytorch.org/whl/cu121 \
     tqdm==4.66.5 numpy==1.26.3 imageio==2.35.1 imageio-ffmpeg==0.5.1 xformers==0.0.27.post2 diffusers==0.30.3 moviepy==1.0.3 transformers==4.44.2 accelerate==0.33.0 sentencepiece==0.2.0 pillow==9.5.0 runpod && \
@@ -25,13 +27,11 @@ RUN pip install -q torch==2.4.0+cu121 torchvision==0.19.0+cu121 torchaudio==2.4.
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/tokenizer/spiece.model -d /content/model/tokenizer -o spiece.model && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/tokenizer/tokenizer_config.json -d /content/model/tokenizer -o tokenizer_config.json && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/transformer/config.json -d /content/model/transformer -o config.json && \
-    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/transformer/diffusion_pytorch_model-00001-of-00003.safetensors -d /content/model/transformer -o diffusion_pytorch_model-00001-of-00003.safetensors && \
-    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/transformer/diffusion_pytorch_model-00002-of-00003.safetensors -d /content/model/transformer -o diffusion_pytorch_model-00002-of-00003.safetensors && \
-    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/transformer/diffusion_pytorch_model-00003-of-00003.safetensors -d /content/model/transformer -o diffusion_pytorch_model-00003-of-00003.safetensors && \
-    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/transformer/diffusion_pytorch_model.safetensors.index.json -d /content/model/transformer -o diffusion_pytorch_model.safetensors.index.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/transformer/diffusion_pytorch_model.safetensors -d /content/model/transformer -o diffusion_pytorch_model.safetensors && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/vae/config.json -d /content/model/vae -o config.json && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/resolve/main/vae/diffusion_pytorch_model.safetensors -d /content/model/vae -o diffusion_pytorch_model.safetensors && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/configuration.json -d /content/model -o configuration.json && \
+    aria2c --console-log-level=error -c -x 16 -s 16 -k 1M "https://cdn-lfs-us-1.hf.co/repos/c9/2c/c92c727c91777ba0dc27765cde8230ff8b79131db869adc443ff9f2b06973eaf/15f88876af8aacc9fe8f88d3c80dbe00e4a7b24e64f28e9b72c2e9551e9720e0?response-content-disposition=attachment%3B+filename*%3DUTF-8%27%271000_latestHD_ain.safetensors%3B+filename%3D%221000_latestHD_ain.safetensors%22%3B&Expires=1731555078&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTczMTU1NTA3OH19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2RuLWxmcy11cy0xLmhmLmNvL3JlcG9zL2M5LzJjL2M5MmM3MjdjOTE3NzdiYTBkYzI3NzY1Y2RlODIzMGZmOGI3OTEzMWRiODY5YWRjNDQzZmY5ZjJiMDY5NzNlYWYvMTVmODg4NzZhZjhhYWNjOWZlOGY4OGQzYzgwZGJlMDBlNGE3YjI0ZTY0ZjI4ZTliNzJjMmU5NTUxZTk3MjBlMD9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPSoifV19&Signature=o6WjhiW6KJHrJSMRupTCBzvT1LKJ1E374doRJgI77br9Q9osPkytCfFnebhkcYnUVm5UzPj-tGrSvW-pa3BxHKZaZQFBL4ODaR%7ExYhsVxkMnQDkJCMfhx0fL6LC7zrZkta1ejtUzitmi%7EcGuz2rtgasx0UrB%7EgeA8z7Fo-QD4dcIF06zQAty1OGpTHirN49ImDRdyCYCGce1orMcOzlUiFHNxZYk5Usm63ZUU3wNIfMuwomE9MIxDTah4hxpqGqF6KlqqVok4M0PMf9nJ0PmthQmOlcxZSNxxIwLsASEYtr36KBE0ZBnyWDwNiQAx3DSHqUUuMpZBpdRLQPTjP9uHA__&Key-Pair-Id=K24J24Z295AEI9" -d /content/ -o shirtlift.safetensors && \
     aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/alibaba-pai/CogVideoX-Fun-V1.1-5b-InP/raw/main/model_index.json -d /content/model -o model_index.json
 
 COPY ./worker_runpod.py /content/worker_runpod.py

@@ -2,6 +2,7 @@ import os, json, requests, random, runpod
 
 import torch
 from diffusers import AutoencoderKLCogVideoX, CogVideoXImageToVideoPipeline, CogVideoXTransformer3DModel
+from cogvideox.utils.lora_utils import merge_lora, unmerge_lora
 from diffusers.utils import export_to_video, load_image
 from transformers import T5EncoderModel, T5Tokenizer
 
@@ -28,7 +29,9 @@ def download_file(url, save_dir, file_name):
 @torch.inference_mode()
 def generate(input):
     values = input["input"]
-
+    lora_path = "/content/shirtlift.safetensors"
+    lora_weight = 1.0
+    pipe = merge_lora(pipe, lora_path, lora_weight)
     input_image = values['input_image_check']
     input_image = download_file(url=input_image, save_dir='/content/input', file_name='input_image_tost')
     prompt = values['prompt']
